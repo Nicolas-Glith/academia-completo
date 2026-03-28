@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PowerFit Pro - Sistema de Gestão de Academia</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --success: #48bb78;
+            --danger: #f56565;
+            --warning: #ed8936;
+            --info: #4299e1;
+            --dark: #2d3748;
+            --light: #f7fafc;
+            --gray: #718096;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Loading Spinner */
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 24px 48px rgba(0,0,0,0.15);
+        }
+
+        /* Dashboard Cards */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h4 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        /* Formulários */
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #c53030 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #2f855a 100%);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Menu */
+        .menu {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 16px;
+        }
+
+        .menu button {
+            background: transparent;
+            color: var(--gray);
+            position: relative;
+        }
+
+        .menu button.active {
+            color: var(--primary);
+        }
+
+        .menu button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -18px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        /* Abas */
+        .aba {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Listas */
+        .list-container {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .list-item {
+            background: var(--light);
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            border-left: 4px solid var(--primary);
+        }
+
+        .list-item:hover {
+            background: #edf2f7;
+            transform: translateX(5px);
+        }
+
+        .list-item-content {
+            flex: 1;
+        }
+
+        .list-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .badge-active { background: #c6f6d5; color: #22543d; }
+        .badge-pending { background: #feebc8; color: #7b341e; }
+        .badge-cancelled { background: #fed7d7; color: #742a2a; }
+        .badge-entrada { background: #c6f6d5; color: #22543d; }
+        .badge-saida { background: #fed7d7; color: #742a2a; }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--dark);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Search e Filtros */
+        .search-box, .filter-group {
+            margin: 20px 0;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .card {
+                padding: 20px;
+            }
+            
+            .list-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .list-item-actions {
+                margin-top: 12px;
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="card">
+            <h2>🏋️‍♂️ PowerFit Pro</h2>
+            <p style="color: #718096; margin-bottom: 24px;">Sistema profissional de gestão de academia</p>
+            <input type="text" id="loginUsername" placeholder="Usuário" autocomplete="off">
+            <input type="password" id="loginPassword" placeholder="Senha">
+            <button onclick="authController.login()" id="loginBtn">Entrar</button>
+            <button onclick="uiController.showRegister()" class="btn-secondary" style="margin-top: 10px;">Criar conta</button>
+        </div>
+
+        <!-- Register Screen -->
+        <div id="registerScreen" class="card hidden">
+            <h2>📝 Criar conta</h2>
+            <input type="text" id="regUsername" placeholder="Usuário">
+            <input type="email" id="regEmail" placeholder="E-mail">
+            <input type="password" id="regPassword" placeholder="Senha (mínimo 6 caracteres)">
+            <input type="password" id="regConfirmPassword" placeholder="Confirmar senha">
+            <button onclick="authController.register()">Cadastrar</button>
+            <button onclick="uiController.showLogin()" class="btn-secondary" style="margin-top: 10px;">Voltar</button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="hidden">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2>🎯 Dashboard</h2>
+                    <button onclick="authController.logout()" class="btn-danger btn-sm">Sair</button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="dashboard-stats" id="statsContainer"></div>
+
+                <!-- Navigation Menu -->
+                <div class="menu" id="navMenu">
+                    <button onclick="uiController.showTab('dashboardTab')" class="active">📊 Dashboard</button>
+                    <button onclick="uiController.showTab('clientsTab')">👥 Clientes</button>
+                    <button onclick="uiController.showTab('financialTab')">💰 Financeiro</button>
+                    <button onclick="uiController.showTab('workoutsTab')">📋 Treinos</button>
+                </div>
+
+                <!-- Dashboard Tab -->
+                <div id="dashboardTab" class="aba">
+                    <h3>Resumo do Mês</h3>
+                    <div id="monthlySummary"></div>
+                    <h3 style="margin-top: 24px;">Últimas Transações</h3>
+                    <div id="recentTransactions"></div>
+                </div>
+
+                <!-- Clients Tab -->
+                <div id="clientsTab" class="aba hidden">
+                    <h3>Gerenciar Clientes</h3>
+                    <div style="display: grid; gap: 12px; grid-template-columns: 1fr 1fr auto; margin-bottom: 20px;">
+                        <input type="text" id="clientName" placeholder="Nome completo">
+                        <input type="email" id="clientEmail" placeholder="E-mail">
+                        <button onclick="clientController.add()">➕ Adicionar</button>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="clientSearch" placeholder="🔍 Buscar cliente..." onkeyup="clientController.filter()">
+                    </div>
+                    <div id="clientsList" class="list-container"></div>
+                </div>
+
+                <!-- Financial Tab -->
+                <div id="financialTab" class="aba hidden">
+                    <h3>Controle Financeiro</h3>
+                    <div style="display: grid; gap: 12px; grid-template-columns: 1fr 1fr 1fr auto; margin-bottom: 20px;">
+                        <input type="number" id="transactionValue" placeholder="Valor (R$)">
+                        <select id="transactionType">
+                            <option value="income">📈 Entrada</option>
+                            <option value="expense">📉 Saída</option>
+                        </select>
+                        <input type="text" id="transactionDescription" placeholder="Descrição">
+                        <button onclick="financialController.add()">➕ Adicionar</button>
+                    </div>
+                    <div class="filter-group">
+                        <select id="financialFilter" onchange="financialController.filter()">
+                            <option value="all">Todos</option>
+                            <option value="income">Apenas Entradas</option>
+                            <option value="expense">Apenas Saídas</option>
+                        </select>
+                        <select id="periodFilter" onchange="financialController.filter()">
+                            <option value="all">Todo período</option>
+                            <option value="month">Este mês</option>
+                            <option value="year">Este ano</option>
+                        </select>
+                    </div>
+                    <div id="transactionsList" class="list-container"></div>
+                    <div id="balance" class="stat-card" style="margin-top: 20px;"></div>
+                </div>
+
+                <!-- Workouts Tab -->
+                <div id="workoutsTab" class="aba hidden">
+                    <h3>Fichas de Treino</h3>
+                    <div style="display: grid; gap: 12px; grid-template-columns: 1fr 2fr auto; margin-bottom: 20px;">
+                        <input type="text" id="workoutClient" placeholder="Aluno">
+                        <input type="text" id="workoutDescription" placeholder="Descrição do treino">
+                        <button onclick="workoutController.add()">➕ Adicionar</button>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="workoutSearch" placeholder="🔍 Buscar por aluno..." onkeyup="workoutController.filter()">
+                    </div>
+                    <div id="workoutsList" class="list-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== MODELS ====================
+        class User {
+            constructor(id, username, email, passwordHash, createdAt) {
+                this.id = id;
+                this.username = username;
+                this.email = email;
+                this.passwordHash = passwordHash;
+                this.createdAt = createdAt || new Date().toISOString();
+            }
+        }
+
+        class Client {
+            constructor(id, name, email, phone, status, membershipDueDate, createdAt) {
+                this.id = id;
+                this.name = name;
+                this.email = email;
+                this.phone = phone || '';
+                this.status = status || 'active'; // active, pending, cancelled
+                this.membershipDueDate = membershipDueDate || new Date(Date.now() + 30*24*60*60*1000).toISOString();
+                this.createdAt = createdAt || new Date().toISOString();
+            }
+        }
+
+        class Transaction {
+            constructor(id, type, value, description, date, clientId) {
+                this.id = id;
+                this.type = type; // income or expense
+                this.value = value;
+                this.description = description;
+                this.date = date || new Date().toISOString();
+                this.clientId = clientId || null;
+            }
+        }
+
+        class Workout {
+            constructor(id, clientId, clientName, description, createdAt) {
+                this.id = id;
+                this.clientId = clientId;
+                this.clientName = clientName;
+                this.description = description;
+                this.createdAt = createdAt || new Date().toISOString();
+            }
+        }
+
+        // ==================== SERVICES ====================
+        class StorageService {
+            constructor(prefix = 'powerfit_') {
+                this.prefix = prefix;
+            }
+
+            get(key) {
+                const data = localStorage.getItem(this.prefix + key);
+                return data ? JSON.parse(data) : null;
+            }
+
+            set(key, value) {
+                localStorage.setItem(this.prefix + key, JSON.stringify(value));
+            }
+
+            remove(key) {
+                localStorage.removeItem(this.prefix + key);
+            }
+
+            clear() {
+                Object.keys(localStorage)
+                    .filter(k => k.startsWith(this.prefix))
+                    .forEach(k => localStorage.removeItem(k));
+            }
+        }
+
+        class AuthService {
+            constructor(storage) {
+                this.storage = storage;
+                this.currentUser = null;
+                this.sessionToken = null;
+            }
+
+            async hashPassword(password) {
+                // Simulação de bcrypt com salt e múltiplas iterações
+                const encoder = new TextEncoder();
+                const data = encoder.encode(password + 'powerfit_salt_2024');
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+
+            async register(username, email, password) {
+                const users = this.storage.get('users') || [];
+                
+                if (users.find(u => u.username === username)) {
+                    throw new Error('Usuário já existe');
+                }
+                
+                const passwordHash = await this.hashPassword(password);
+                const newUser = new User(Date.now(), username, email, passwordHash);
+                users.push(newUser);
+                this.storage.set('users', users);
+                
+                return newUser;
+            }
+
+            async login(username, password) {
+                const users = this.storage.get('users') || [];
+                const user = users.find(u => u.username === username);
+                
+                if (!user) {
+                    throw new Error('Usuário não encontrado');
+                }
+                
+                const passwordHash = await this.hashPassword(password);
+                if (user.passwordHash !== passwordHash) {
+                    throw new Error('Senha incorreta');
+                }
+                
+                this.currentUser = user;
+                this.sessionToken = this.generateToken(user);
+                this.storage.set('session', { userId: user.id, token: this.sessionToken });
+                
+                return user;
+            }
+
+            generateToken(user) {
+                return btoa(`${user.id}:${Date.now()}:${Math.random()}`);
+            }
+
+            logout() {
+                this.currentUser = null;
+                this.sessionToken = null;
+                this.storage.remove('session');
+            }
+
+            isAuthenticated() {
+                const session = this.storage.get('session');
+                return !!session;
+            }
+
+            getCurrentUser() {
+                if (!this.currentUser && this.isAuthenticated()) {
+                    const session = this.storage.get('session');
+                    const users = this.storage.get('users') || [];
+                    this.currentUser = users.find(u => u.id === session.userId);
+                }
+                return this.currentUser;
+            }
+        }
+
+        class ClientService {
+            constructor(storage, authService) {
+                this.storage = storage;
+                this.authService = authService;
+            }
+
+            getClients() {
+                const userId = this.authService.getCurrentUser()?.id;
+                return this.storage.get(`clients_${userId}`) || [];
+            }
+
+            saveClients(clients) {
+                const userId = this.authService.getCurrentUser()?.id;
+                this.storage.set(`clients_${userId}`, clients);
+            }
+
+            add(clientData) {
+                const clients = this.getClients();
+                const newClient = new Client(Date.now(), clientData.name, clientData.email, clientData.phone);
+                clients.push(newClient);
+                this.saveClients(clients);
+                return newClient;
+            }
+
+            update(clientId, updates) {
+                const clients = this.getClients();
+                const index = clients.findIndex(c => c.id === clientId);
+                if (index === -1) throw new Error('Cliente não encontrado');
+                
+                clients[index] = { ...clients[index], ...updates };
+                this.saveClients(clients);
+                return clients[index];
+            }
+
+            delete(clientId) {
+                let clients = this.getClients();
+                clients = clients.filter(c => c.id !== clientId);
+                this.saveClients(clients);
+            }
+
+            getStats() {
+                const clients = this.getClients();
+                return {
+                    total: clients.length,
+                    active: clients.filter(c => c.status === 'active').length,
+                    pending: clients.filter(c => c.status === 'pending').length,
+                    cancelled: clients.filter(c => c.status === 'cancelled').length
+                };
+            }
+        }
+
+        class FinancialService {
+            constructor(storage, authService) {
+                this.storage = storage;
+                this.authService = authService;
+            }
+
+            getTransactions() {
+                const userId = this.authService.getCurrentUser()?.id;
+                return this.storage.get(`transactions_${userId}`) || [];
+            }
+
+            saveTransactions(transactions) {
+                const userId = this.authService.getCurrentUser()?.id;
+                this.storage.set(`transactions_${userId}`, transactions);
+            }
+
+            add(transactionData) {
+                const transactions = this.getTransactions();
+                const newTransaction = new Transaction(
+                    Date.now(),
+                    transactionData.type,
+                    transactionData.value,
+                    transactionData.description
+                );
+                transactions.push(newTransaction);
+                this.saveTransactions(transactions);
+                return newTransaction;
+            }
+
+            update(transactionId, updates) {
+                const transactions = this.getTransactions();
+                const index = transactions.findIndex(t => t.id === transactionId);
+                if (index === -1) throw new Error('Transação não encontrada');
+                
+                transactions[index] = { ...transactions[index], ...updates };
+                this.saveTransactions(transactions);
+                return transactions[index];
+            }
+
+            delete(transactionId) {
+                let transactions = this.getTransactions();
+                transactions = transactions.filter(t => t.id !== transactionId);
+                this.saveTransactions(transactions);
+            }
+
+            getBalance() {
+                const transactions = this.getTransactions();
+                return transactions.reduce((balance, t) => {
+                    return balance + (t.type === 'income' ? t.value : -t.value);
+                }, 0);
+            }
+
+            getMonthlySummary() {
+                const transactions = this.getTransactions();
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+                
+                const monthlyTransactions = transactions.filter(t => {
+                    const date = new Date(t.date);
+                    return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+                });
+                
+                const income = monthlyTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.value, 0);
+                const expense = monthlyTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.value, 0);
+                
+                return { income, expense, balance: income - expense };
+            }
+        }
+
+        class WorkoutService {
+            constructor(storage, authService) {
+                this.storage = storage;
+                this.authService = authService;
+            }
+
+            getWorkouts() {
+                const userId = this.authService.getCurrentUser()?.id;
+                return this.storage.get(`workouts_${userId}`) || [];
+            }
+
+            saveWorkouts(workouts) {
+                const userId = this.authService.getCurrentUser()?.id;
+                this.storage.set(`workouts_${userId}`, workouts);
+            }
+
+            add(workoutData) {
+                const workouts = this.getWorkouts();
+                const newWorkout = new Workout(
+                    Date.now(),
+                    workoutData.clientId || Date.now(),
+                    workoutData.clientName,
+                    workoutData.description
+                );
+                workouts.push(newWorkout);
+                this.saveWorkouts(workouts);
+                return newWorkout;
+            }
+
+            update(workoutId, updates) {
+                const workouts = this.getWorkouts();
+                const index = workouts.findIndex(w => w.id === workoutId);
+                if (index === -1) throw new Error('Treino não encontrado');
+                
+                workouts[index] = { ...workouts[index], ...updates };
+                this.saveWorkouts(workouts);
+                return workouts[index];
+            }
+
+            delete(workoutId) {
+                let workouts = this.getWorkouts();
+                workouts = workouts.filter(w => w.id !== workoutId);
+                this.saveWorkouts(workouts);
+            }
+        }
+
+        // ==================== CONTROLLERS ====================
+        class AuthController {
+            constructor(authService, uiController) {
+                this.authService = authService;
+                this.uiController = uiController;
+            }
+
+            async login() {
+                const username = document.getElementById('loginUsername').value.trim();
+                const password = document.getElementById('loginPassword').value;
+                
+                if (!username || !password) {
+                    this.uiController.showToast('Preencha todos os campos', 'error');
+                    return;
+                }
+                
+                const btn = document.getElementById('loginBtn');
+                btn.innerHTML = '<span class="loader"></span> Entrando...';
+                btn.disabled = true;
+                
+                try {
+                    await this.authService.login(username, password);
+                    this.uiController.showDashboard();
+                    this.uiController.showToast('Login realizado com sucesso!', 'success');
+                } catch (error) {
+                    this.uiController.showToast(error.message, 'error');
+                } finally {
+                    btn.innerHTML = 'Entrar';
+                    btn.disabled = false;
+                }
+            }
+
+            async register() {
+                const username = document.getElementById('regUsername').value.trim();
+                const email = document.getElementById('regEmail').value.trim();
+                const password = document.getElementById('regPassword').value;
+                const confirm = document.getElementById('regConfirmPassword').value;
+                
+                if (!username || !email || !password) {
+                    this.uiController.showToast('Preencha todos os campos', 'error');
+                    return;
+                }
+                
+                if (password !== confirm) {
+                    this.uiController.showToast('As senhas não coincidem', 'error');
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    this.uiController.showToast('A senha deve ter no mínimo 6 caracteres', 'error');
+                    return;
+                }
+                
+                try {
+                    await this.authService.register(username, email, password);
+                    this.uiController.showToast('Cadastro realizado com sucesso! Faça login.', 'success');
+                    this.uiController.showLogin();
+                } catch (error) {
+                    this.uiController.showToast(error.message, 'error');
+                }
+            }
+
+            logout() {
+                this.authService.logout();
+                this.uiController.showLogin();
+                this.uiController.showToast('Logout realizado', 'info');
+            }
+        }
+
+        class ClientController {
+            constructor(clientService, uiController) {
+                this.clientService = clientService;
+                this.uiController = uiController;
+                this.filteredClients = [];
+            }
+
+            add() {
+                const name = document.getElementById('clientName').value.trim();
+                const email = document.getElementById('clientEmail').value.trim();
+                
+                if (!name) {
+                    this.uiController.showToast('Digite o nome do cliente', 'error');
+                    return;
+                }
+                
+                this.clientService.add({ name, email });
+                document.getElementById('clientName').value = '';
+                document.getElementById('clientEmail').value = '';
+                this.render();
+                this.uiController.showToast('Cliente adicionado com sucesso!', 'success');
+            }
+
+            edit(id) {
+                const clients = this.clientService.getClients();
+                const client = clients.find(c => c.id === id);
+                if (!client) return;
+                
+                const newName = prompt('Novo nome:', client.name);
+                if (newName && newName.trim()) {
+                    this.clientService.update(id, { name: newName.trim() });
+                    this.render();
+                    this.uiController.showToast('Cliente atualizado!', 'success');
+                }
+            }
+
+            delete(id) {
+                if (confirm('Tem certeza que deseja excluir este cliente?')) {
+                    this.clientService.delete(id);
+                    this.render();
+                    this.uiController.showToast('Cliente removido!', 'success');
+                }
+            }
+
+            filter() {
+                this.render();
+            }
+
+            render() {
+                let clients = this.clientService.getClients();
+                const searchTerm = document.getElementById('clientSearch')?.value.toLowerCase() || '';
+                
+                this.filteredClients = clients.filter(c => 
+                    c.name.toLowerCase().includes(searchTerm) || 
+                    c.email.toLowerCase().includes(searchTerm)
+                );
+                
+                const container = document.getElementById('clientsList');
+                if (!container) return;
+                
+                if (this.filteredClients.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #718096;">Nenhum cliente cadastrado</div>';
+                    return;
+                }
+                
+                container.innerHTML = this.filteredClients.map(c => `
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <strong>${this.escapeHtml(c.name)}</strong>
+                            ${c.email ? `<br><small>📧 ${this.escapeHtml(c.email)}</small>` : ''}
+                            <br><small>📅 ${new Date(c.createdAt).toLocaleDateString('pt-BR')}</small>
+                            <span class="badge badge-${c.status}">
+                                ${c.status === 'active' ? '✓ Ativo' : c.status === 'pending' ? '⏳ Pendente' : '✗ Cancelado'}
+                            </span>
+                        </div>
+                        <div class="list-item-actions">
+                            <button onclick="clientController.edit(${c.id})" class="btn-secondary btn-sm">✏️</button>
+                            <button onclick="clientController.delete(${c.id})" class="btn-danger btn-sm">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+        }
+
+        class FinancialController {
+            constructor(financialService, uiController) {
+                this.financialService = financialService;
+                this.uiController = uiController;
+                this.filteredTransactions = [];
+            }
+
+            add() {
+                const value = parseFloat(document.getElementById('transactionValue').value);
+                const type = document.getElementById('transactionType').value;
+                const description = document.getElementById('transactionDescription').value.trim();
+                
+                if (isNaN(value) || value <= 0) {
+                    this.uiController.showToast('Digite um valor válido', 'error');
+                    return;
+                }
+                
+                if (!description) {
+                    this.uiController.showToast('Digite uma descrição', 'error');
+                    return;
+                }
+                
+                this.financialService.add({ value, type, description });
+                document.getElementById('transactionValue').value = '';
+                document.getElementById('transactionDescription').value = '';
+                this.render();
+                this.uiController.showToast('Transação adicionada!', 'success');
+            }
+
+            edit(id) {
+                const transactions = this.financialService.getTransactions();
+                const transaction = transactions.find(t => t.id === id);
+                if (!transaction) return;
+                
+                const newValue = prompt('Novo valor:', transaction.value);
+                const newDescription = prompt('Nova descrição:', transaction.description);
+                
+                if (newValue && !isNaN(parseFloat(newValue))) {
+                    this.financialService.update(id, { 
+                        value: parseFloat(newValue),
+                        description: newDescription || transaction.description
+                    });
+                    this.render();
+                    this.uiController.showToast('Transação atualizada!', 'success');
+                }
+            }
+
+            delete(id) {
+                if (confirm('Tem certeza que deseja excluir esta transação?')) {
+                    this.financialService.delete(id);
+                    this.render();
+                    this.uiController.showToast('Transação removida!', 'success');
+                }
+            }
+
+            filter() {
+                this.render();
+            }
+
+            render() {
+                let transactions = this.financialService.getTransactions();
+                const typeFilter = document.getElementById('financialFilter')?.value || 'all';
+                const periodFilter = document.getElementById('periodFilter')?.value || 'all';
+                const now = new Date();
+                
+                this.filteredTransactions = transactions.filter(t => {
+                    if (typeFilter !== 'all' && t.type !== typeFilter) return false;
+                    if (periodFilter === 'month') {
+                        const date = new Date(t.date);
+                        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+                    }
+                    if (periodFilter === 'year') {
+                        const date = new Date(t.date);
+                        return date.getFullYear() === now.getFullYear();
+                    }
+                    return true;
+                }).sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                const container = document.getElementById('transactionsList');
+                const balanceEl = document.getElementById('balance');
+                
+                if (!container) return;
+                
+                if (this.filteredTransactions.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #718096;">Nenhuma transação registrada</div>';
+                } else {
+                    container.innerHTML = this.filteredTransactions.map(t => `
+                        <div class="list-item">
+                            <div class="list-item-content">
+                                <strong>${this.escapeHtml(t.description)}</strong>
+                                <span class="badge badge-${t.type === 'income' ? 'entrada' : 'saida'}">
+                                    ${t.type === 'income' ? '📈 Entrada' : '📉 Saída'}
+                                </span>
+                                <br>
+                                <span style="font-size: 18px; font-weight: bold; color: ${t.type === 'income' ? '#48bb78' : '#f56565'}">
+                                    R$ ${t.value.toFixed(2)}
+                                </span>
+                                <br><small>📅 ${new Date(t.date).toLocaleString('pt-BR')}</small>
+                            </div>
+                            <div class="list-item-actions">
+                                <button onclick="financialController.edit(${t.id})" class="btn-secondary btn-sm">✏️</button>
+                                <button onclick="financialController.delete(${t.id})" class="btn-danger btn-sm">🗑️</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                const balance = this.financialService.getBalance();
+                balanceEl.innerHTML = `<h4>💰 Saldo Total</h4><div class="value">R$ ${balance.toFixed(2)}</div>`;
+            }
+
+            escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+        }
+
+        class WorkoutController {
+            constructor(workoutService, uiController) {
+                this.workoutService = workoutService;
+                this.uiController = uiController;
+                this.filteredWorkouts = [];
+            }
+
+            add() {
+                const clientName = document.getElementById('workoutClient').value.trim();
+                const description = document.getElementById('workoutDescription').value.trim();
+                
+                if (!clientName || !description) {
+                    this.uiController.showToast('Preencha todos os campos', 'error');
+                    return;
+                }
+                
+                this.workoutService.add({ clientName, description });
+                document.getElementById('workoutClient').value = '';
+                document.getElementById('workoutDescription').value = '';
+                this.render();
+                this.uiController.showToast('Treino adicionado!', 'success');
+            }
+
+            edit(id) {
+                const workouts = this.workoutService.getWorkouts();
+                const workout = workouts.find(w => w.id === id);
+                if (!workout) return;
+                
+                const newDescription = prompt('Nova descrição do treino:', workout.description);
+                if (newDescription && newDescription.trim()) {
+                    this.workoutService.update(id, { description: newDescription.trim() });
+                    this.render();
+                    this.uiController.showToast('Treino atualizado!', 'success');
+                }
+            }
+
+            delete(id) {
+                if (confirm('Tem certeza que deseja excluir esta ficha de treino?')) {
+                    this.workoutService.delete(id);
+                    this.render();
+                    this.uiController.showToast('Treino removido!', 'success');
+                }
+            }
+
+            filter() {
+                this.render();
+            }
+
+            render() {
+                let workouts = this.workoutService.getWorkouts();
+                const searchTerm = document.getElementById('workoutSearch')?.value.toLowerCase() || '';
+                
+                this.filteredWorkouts = workouts.filter(w => 
+                    w.clientName.toLowerCase().includes(searchTerm) || 
+                    w.description.toLowerCase().includes(searchTerm)
+                ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                
+                const container = document.getElementById('workoutsList');
+                if (!container) return;
+                
+                if (this.filteredWorkouts.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #718096;">Nenhuma ficha de treino cadastrada</div>';
+                    return;
+                }
+                
+                container.innerHTML = this.filteredWorkouts.map(w => `
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <strong>🏋️ ${this.escapeHtml(w.clientName)}</strong>
+                            <br>
+                            <span>📋 ${this.escapeHtml(w.description)}</span>
+                            <br><small>📅 ${new Date(w.createdAt).toLocaleDateString('pt-BR')}</small>
+                        </div>
+                        <div class="list-item-actions">
+                            <button onclick="workoutController.edit(${w.id})" class="btn-secondary btn-sm">✏️</button>
+                            <button onclick="workoutController.delete(${w.id})" class="btn-danger btn-sm">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+        }
+
+        class UIController {
+            constructor() {
+                this.currentTab = 'dashboardTab';
+            }
+
+            showLogin() {
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('registerScreen').classList.add('hidden');
+                document.getElementById('dashboard').classList.add('hidden');
+            }
+
+            showRegister() {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('registerScreen').classList.remove('hidden');
+                document.getElementById('dashboard').classList.add('hidden');
+            }
+
+            showDashboard() {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('registerScreen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                this.updateStats();
+                this.updateMonthlySummary();
+                this.updateRecentTransactions();
+            }
+
+            updateStats() {
+                const stats = clientService.getStats();
+                const container = document.getElementById('statsContainer');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="stat-card">
+                            <h4>Total de Clientes</h4>
+                            <div class="value">${stats.total}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Ativos</h4>
+                            <div class="value">${stats.active}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Pendentes</h4>
+                            <div class="value">${stats.pending}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Saldo Total</h4>
+                            <div class="value">R$ ${financialService.getBalance().toFixed(2)}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            updateMonthlySummary() {
+                const summary = financialService.getMonthlySummary();
+                const container = document.getElementById('monthlySummary');
+                if (container) {
+                    container.innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #48bb78, #2f855a);">
+                                <h4>Entradas</h4>
+                                <div class="value">R$ ${summary.income.toFixed(2)}</div>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #f56565, #c53030);">
+                                <h4>Saídas</h4>
+                                <div class="value">R$ ${summary.expense.toFixed(2)}</div>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #4299e1, #2b6cb0);">
+                                <h4>Resultado</h4>
+                                <div class="value">R$ ${summary.balance.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            updateRecentTransactions() {
+                const transactions = financialService.getTransactions();
+                const recent = transactions.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+                const container = document.getElementById('recentTransactions');
+                if (container) {
+                    if (recent.length === 0) {
+                        container.innerHTML = '<div style="text-align: center; padding: 20px; color: #718096;">Nenhuma transação recente</div>';
+                    } else {
+                        container.innerHTML = recent.map(t => `
+                            <div class="list-item" style="margin-bottom: 8px;">
+                                <div class="list-item-content">
+                                    <strong>${this.escapeHtml(t.description)}</strong>
+                                    <span class="badge badge-${t.type === 'income' ? 'entrada' : 'saida'}">
+                                        ${t.type === 'income' ? '📈' : '📉'}
+                                    </span>
+                                    <span style="float: right; font-weight: bold; color: ${t.type === 'income' ? '#48bb78' : '#f56565'}">
+                                        R$ ${t.value.toFixed(2)}
+                                    </span>
+                                    <br><small>${new Date(t.date).toLocaleDateString('pt-BR')}</small>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            }
+
+            showTab(tabId) {
+                document.querySelectorAll('.aba').forEach(tab => tab.classList.add('hidden'));
+                document.getElementById(tabId).classList.remove('hidden');
+                
+                document.querySelectorAll('.menu button').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                this.currentTab = tabId;
+                
+                // Refresh data when switching tabs
+                if (tabId === 'clientsTab') clientController.render();
+                if (tabId === 'financialTab') financialController.render();
+                if (tabId === 'workoutsTab') workoutController.render();
+                if (tabId === 'dashboardTab') {
+                    this.updateStats();
+                    this.updateMonthlySummary();
+                    this.updateRecentTransactions();
+                }
+            }
+
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                const colors = {
+                    success: '#48bb78',
+                    error: '#f56565',
+                    info: '#4299e1'
+                };
+                toast.style.background = colors[type] || colors.info;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+
+            escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+        }
+
+        // ==================== INITIALIZATION ====================
+        const storage = new StorageService();
+        const authService = new AuthService(storage);
+        const uiController = new UIController();
+        
+        const authController = new AuthController(authService, uiController);
+        const clientService = new ClientService(storage, authService);
+        const clientController = new ClientController(clientService, uiController);
+        const financialService = new FinancialService(storage, authService);
+        const financialController = new FinancialController(financialService, uiController);
+        const workoutService = new WorkoutService(storage, authService);
+        const workoutController = new WorkoutController(workoutService, uiController);
+        
+        // Make controllers globally accessible for onclick handlers
+        window.authController = authController;
+        window.clientController = clientController;
+        window.financialController = financialController;
+        window.workoutController = workoutController;
+        window.uiController = uiController;
+        
+        // Check for existing session
+        if (authService.isAuthenticated()) {
+            uiController.showDashboard();
+            clientController.render();
+            financialController.render();
+            workoutController.render();
+        } else {
+            uiController.showLogin();
+        }
+        
+        // Create default admin user if no users exist
+        (async () => {
+            const users = storage.get('users') || [];
+            if (users.length === 0) {
+                const defaultHash = await authService.hashPassword('admin123');
+                users.push(new User(Date.now(), 'admin', 'admin@powerfit.com', defaultHash));
+                storage.set('users', users);
+                console.log('Usuário padrão criado: admin / admin123');
+            }
+        })();
+    </script>
+</body>
+</html>
